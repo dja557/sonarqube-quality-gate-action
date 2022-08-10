@@ -8,6 +8,7 @@ if [[ -z "${SONAR_TOKEN}" ]]; then
 fi
 
 metadataFile="$1"
+cert="$2"
 
 if [[ ! -f "$metadataFile" ]]; then
    echo "$metadataFile does not exist."
@@ -27,19 +28,19 @@ if [ -z "${serverUrl}" ] || [ -z "${ceTaskUrl}" ]; then
   exit 1
 fi
 
-task="$(curl -k --silent --fail --show-error --user "${SONAR_TOKEN}": "${ceTaskUrl}")"
+task="$(curl --silent --fail --show-error --user "${SONAR_TOKEN}": "${ceTaskUrl}" --cacert "${cert}")"
 status="$(jq -r '.task.status' <<< "$task")"
 
 until [[ ${status} != "PENDING" && ${status} != "IN_PROGRESS" ]]; do
     printf '.'
     sleep 5s
-    task="$(curl -k --silent --fail --show-error --user "${SONAR_TOKEN}": "${ceTaskUrl}")"
+    task="$(curl --silent --fail --show-error --user "${SONAR_TOKEN}": "${ceTaskUrl}" --cacert "${cert}")"
     status="$(jq -r '.task.status' <<< "$task")"
 done
 
 analysisId="$(jq -r '.task.analysisId' <<< "${task}")"
 qualityGateUrl="${serverUrl}/api/qualitygates/project_status?analysisId=${analysisId}"
-qualityGateStatus="$(curl -k --silent --fail --show-error --user "${SONAR_TOKEN}": "${qualityGateUrl}" | jq -r '.projectStatus.status')"
+qualityGateStatus="$(curl --silent --fail --show-error --user "${SONAR_TOKEN}": "${qualityGateUrl}" --cacert "${cert}" | jq -r '.projectStatus.status')"
 
 if [[ ${qualityGateStatus} == "OK" ]]; then
    echo '::set-output name=quality-gate-status::PASSED'
