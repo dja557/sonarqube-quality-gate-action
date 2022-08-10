@@ -14,6 +14,10 @@ inputs:
     description: Location of the scanner metadata report file
     required: false
     default: .scannerwork/report-task.txt
+  certPath:
+    description: Location of cert file
+    required: false
+    default: ./sonar.pem
 outputs:
   quality-gate-status:
     description: >
